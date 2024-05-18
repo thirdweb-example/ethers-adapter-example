@@ -104,7 +104,13 @@ const MintNftWithEthers = ({
       chain: avalancheFuji,
       account: thirdwebAccount,
     });
-    const ethersContract = new Contract(contractAddress, abi, ethersSigner);
+    const ethersContract = (await ethers6Adapter.contract.toEthers({
+      thirdwebContract,
+      // This is important. Since you are making state-change contract call
+      // you must initiate the ethers contract instance with a signer
+      // please refer to ethers docs: https://docs.ethers.org/v6/getting-started/#starting-contracts
+      account: ethersSigner,
+    })) as Contract;
 
     /**
      * Step 4: Execute the transaction (using ethers)
@@ -121,9 +127,9 @@ const MintNftWithEthers = ({
         data,
       ];
       const tx = await ethersContract[functionName](...params);
+      console.log(tx); // This `tx` doesn't have `hash`
       // Await for the transaction to be mined
-      await tx.wait();
-      console.log(tx);
+      await tx.wait(); // This will cause issue
       const hash = tx.hash;
       if (hash) {
         console.log({ hash });
